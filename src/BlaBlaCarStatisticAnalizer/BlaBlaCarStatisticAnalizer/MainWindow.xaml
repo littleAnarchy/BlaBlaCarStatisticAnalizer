@@ -8,7 +8,7 @@
         xmlns:local="clr-namespace:BlaBlaCarStatisticAnalizer"
         xmlns:wpf="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
+        Title="BlaBlaCar Statistic Analizer" Height="450" Width="800"
     d:DataContext="{d:DesignInstance local:AnalizerViewModel, IsDesignTimeCreatable=False}">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -17,8 +17,8 @@
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="0.4*"/>
+                <RowDefinition Height="0.6*"/>
             </Grid.RowDefinitions>
             <GroupBox Grid.Row="0" Header="Paths">
                 <ListBox ItemsSource="{Binding Paths, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" 
@@ -28,8 +28,9 @@
                             <StackPanel Orientation="Horizontal">
                                 <Label Content="{Binding Path=Id}" ContentStringFormat=" {0})"/>
                                 <Label Content="{Binding Request.PlaceFrom}" ContentStringFormat=" {0}  =>"/>
-                                <Label Content="{Binding Request.PlaceTo}"/>
-                                <Label Content="{Binding TimeToHandling}">
+                                <Label Content="{Binding Request.PlaceTo}" Margin="0" Padding="0,5,0,5"/>
+                                <Label Content="{Binding TotalToday}" ContentStringFormat="- TotalToday: {0}"/>
+                                <Label Content="{Binding TimeToHandling}" ContentStringFormat="- {0} -">
                                     <Label.Style>
                                         <Style TargetType="{x:Type Label}">
                                             <Style.Triggers>
@@ -58,26 +59,37 @@
                     </ListBox.ContextMenu>
                 </ListBox>
             </GroupBox>
-                <Grid Row="1">
-               <WrapPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Grid Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <WrapPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <WrapPanel Orientation="Vertical">
-                       <Label Content="Place From"/>
-                       <TextBox Text="{Binding PlaceFrom}"/>
-                   </WrapPanel>
-                    <WrapPanel Orientation="Vertical">
-                       <Label Content="Place To"/>
-                       <TextBox Text="{Binding PlaceTo}"/>
-                   </WrapPanel>
-                    <WrapPanel Orientation="Vertical">
-                       <Label Content="Place Locale"/>
-                       <TextBox Text="{Binding Locale}"/>
-                   </WrapPanel>
-                    <WrapPanel VerticalAlignment="Center" 
-                               HorizontalAlignment="Center">
-                       <Button Content="TestPath"  Command="{Binding TestButtonCommand}"/>
-                       <Button Content="AddPath" Command="{Binding AddPathButtonCommand}"/>
+                        <Label Content="Place From"/>
+                        <TextBox Text="{Binding PlaceFrom}"/>
                     </WrapPanel>
-               </WrapPanel>
+                    <WrapPanel Orientation="Vertical">
+                        <Label Content="Place To"/>
+                        <TextBox Text="{Binding PlaceTo}"/>
+                    </WrapPanel>
+                    <WrapPanel Orientation="Vertical">
+                        <Label Content="Place Locale"/>
+                        <TextBox Text="{Binding Locale}"/>
+                    </WrapPanel>
+                    <WrapPanel Orientation="Vertical">
+                        <Label Content="API KEY:"/>
+                        <TextBox Text="{Binding ApiKey}"/>
+                    </WrapPanel>
+                </WrapPanel>
+                <WrapPanel Grid.Row="1" VerticalAlignment="Center" 
+                           HorizontalAlignment="Center">
+                    <Button Content="TestPath"  Command="{Binding TestButtonCommand}"/>
+                    <Button Content="AddPath" Command="{Binding AddPathButtonCommand}"/>
+                    <Button Content="{Binding StartBtnText, NotifyOnSourceUpdated=True}" 
+                            Command="{Binding ChangeAnalizingCommand}"
+                            IsEnabled="{Binding IsStartButtonEnable}"/>
+                </WrapPanel>
             </Grid>
         </Grid>
         <Grid Column="1">

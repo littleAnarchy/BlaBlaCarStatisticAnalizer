@@ -15,7 +15,7 @@
     <converters:TimeSpanToStateConverter x:Key="TimeSpanToStateConverter"/>
 
     <Style TargetType="{x:Type TextBox}">
-        <Setter Property="Width" Value="200"/>
+        <Setter Property="Width" Value="140"/>
     </Style>
 
     <Style TargetType="{x:Type WrapPanel}">

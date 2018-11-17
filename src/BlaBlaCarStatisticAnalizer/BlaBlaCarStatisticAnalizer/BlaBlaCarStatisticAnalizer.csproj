@@ -147,6 +147,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Common\TripComparer.cs" />
     <Compile Include="Models\BlaBlaCarRequestModel.cs" />
     <Compile Include="Models\BlaBlaCarResponseModel.cs" />
     <Compile Include="CommandHandler.cs" />

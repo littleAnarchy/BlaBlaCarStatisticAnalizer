@@ -19,8 +19,8 @@ namespace BlaBlaCarStatisticAnalizer
     {
         private Window _owner;
         private readonly SynchronizationContext _uiContext = SynchronizationContext.Current;
-        private readonly Timer _timer;
         private int _currentPath = 1;
+        private bool _isAnalize;
 
         public ObservableCollection<PathChecker> Paths { get; set; } = new ObservableCollection<PathChecker>();
 
@@ -29,6 +29,7 @@ namespace BlaBlaCarStatisticAnalizer
         public ICommand TestButtonCommand { get; set; }
         public ICommand AddPathButtonCommand { get; set; }
         public ICommand RemovePathCommand { get; set; }
+        public ICommand ChangeAnalizingCommand { get; set; }
 
         #endregion
 
@@ -50,6 +51,15 @@ namespace BlaBlaCarStatisticAnalizer
         public PathChecker SelectedPath { get; set; }
 
         [Reactive]
+        public string StartBtnText { get; set; } = "Start";
+
+        [Reactive]
+        public bool IsStartButtonEnable { get; set; } = true;
+
+        [Reactive]
+        public string ApiKey { get; set; } = CommonSettings.ApiKey;
+
+        [Reactive]
         public SeriesCollection ChartCollection { get; set; } = new SeriesCollection
         {
             new LineSeries
@@ -67,8 +77,7 @@ namespace BlaBlaCarStatisticAnalizer
             TestButtonCommand = new CommandHandler(OnTestButtonClick, true);
             AddPathButtonCommand = new CommandHandler(AddPath, true);
             RemovePathCommand = new CommandHandler(RemovePath, true);
-
-            _timer = new Timer(state => HandleNextPath(), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+            ChangeAnalizingCommand = new CommandHandler(AnalizingStateChange, true);
         }
 
         private void AddPath()
@@ -103,24 +112,37 @@ namespace BlaBlaCarStatisticAnalizer
             }, null);
         }
 
-        private async void HandleNextPath()
+        private async Task HandlePaths()
         {
-            if (Paths.Count == 0) return;
-            var checker = Paths.FirstOrDefault(path => path.Id == _currentPath);
-            _uiContext.Send(x =>
+            try
             {
-                checker?.SetReady(TimeSpan.FromSeconds(30));
-            }, null);
-            if (checker != null) await Task.Run(async () => await checker.GetStatistic());
-            if (_currentPath == Paths.Count)
-                _currentPath = 1;
-            else
-                _currentPath++;
+                while (_isAnalize)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    if (Paths.Count == 0) return;
+                    var checker = Paths.FirstOrDefault(path => path.Id == _currentPath);
+                    _uiContext.Send(x =>
+                    {
+                        checker?.SetReady(TimeSpan.FromSeconds(0));
+                    }, null);
+                    if (checker != null) await checker.GetStatistic();
+                    if (_currentPath == Paths.Count)
+                        _currentPath = 1;
+                    else
+                        _currentPath++;
+                }
+
+                IsStartButtonEnable = true;
+            }
+            catch (Exception e)
+            {
+                LogMessage(e.Message);
+            }
         }
 
         private BlaBlaCarRequestModel FormRequest()
         {
-            return new BlaBlaCarRequestModel{ Locale = Locale ?? "", PlaceFrom = PlaceFrom ?? "", PlaceTo = PlaceTo ?? "" };
+            return new BlaBlaCarRequestModel{ Locale = Locale ?? "", PlaceFrom = PlaceFrom ?? "", PlaceTo = PlaceTo ?? "", ApiKey = ApiKey ?? CommonSettings.ApiKey};
         }
         
         private async void OnTestButtonClick()
@@ -137,6 +159,21 @@ namespace BlaBlaCarStatisticAnalizer
         private void ClearLog()
         {
             ResponseDataLog = "";
+        }
+
+        private void AnalizingStateChange()
+        {
+            _isAnalize = !_isAnalize;
+            if (_isAnalize)
+            {
+                new Task(async () => await HandlePaths()).Start();
+                StartBtnText = "Stop";
+            }
+            else
+            {
+                StartBtnText = "Start";
+                IsStartButtonEnable = false;
+            }
         }
     }
 }

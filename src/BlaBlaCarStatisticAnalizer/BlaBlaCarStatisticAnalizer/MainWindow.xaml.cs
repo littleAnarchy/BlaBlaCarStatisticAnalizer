@@ -1,4 +1,5 @@
-﻿using MahApps.Metro;
+﻿using System.IO;
+using MahApps.Metro;
 using MahApps.Metro.Controls;
 
 namespace BlaBlaCarStatisticAnalizer
@@ -14,6 +15,7 @@ namespace BlaBlaCarStatisticAnalizer
             ThemeManager.ChangeAppStyle(this,
                 ThemeManager.GetAccent("Emerald"),
                 ThemeManager.GetAppTheme("BaseDark"));
+            Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/" + "Trips");
             InitializeComponent();
         }
     }
