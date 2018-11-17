@@ -1,0 +1,96 @@
+﻿<mah:MetroWindow
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    x:Class="BlaBlaCarStatisticAnalizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BlaBlaCarStatisticAnalizer"
+        xmlns:wpf="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+    d:DataContext="{d:DesignInstance local:AnalizerViewModel, IsDesignTimeCreatable=False}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <GroupBox Grid.Row="0" Header="Paths">
+                <ListBox ItemsSource="{Binding Paths, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" 
+                     SelectedItem="{Binding SelectedPath}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="{Binding Path=Id}" ContentStringFormat=" {0})"/>
+                                <Label Content="{Binding Request.PlaceFrom}" ContentStringFormat=" {0}  =>"/>
+                                <Label Content="{Binding Request.PlaceTo}"/>
+                                <Label Content="{Binding TimeToHandling}">
+                                    <Label.Style>
+                                        <Style TargetType="{x:Type Label}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=TimeToHandling,
+                                        Converter={StaticResource TimeSpanToStateConverter}}" Value="0">
+                                                    <Setter Property="Foreground" Value="AliceBlue"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=TimeToHandling,
+                                        Converter={StaticResource TimeSpanToStateConverter}}" Value="1">
+                                                    <Setter Property="Foreground" Value="Green"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter Property="Content" Value=""/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Label.Style>
+                                </Label>
+                                <Label Content="{Binding State}" ContentStringFormat="({0})"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Remove" Command="{Binding RemovePathCommand}"/>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
+            </GroupBox>
+                <Grid Row="1">
+               <WrapPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <WrapPanel Orientation="Vertical">
+                       <Label Content="Place From"/>
+                       <TextBox Text="{Binding PlaceFrom}"/>
+                   </WrapPanel>
+                    <WrapPanel Orientation="Vertical">
+                       <Label Content="Place To"/>
+                       <TextBox Text="{Binding PlaceTo}"/>
+                   </WrapPanel>
+                    <WrapPanel Orientation="Vertical">
+                       <Label Content="Place Locale"/>
+                       <TextBox Text="{Binding Locale}"/>
+                   </WrapPanel>
+                    <WrapPanel VerticalAlignment="Center" 
+                               HorizontalAlignment="Center">
+                       <Button Content="TestPath"  Command="{Binding TestButtonCommand}"/>
+                       <Button Content="AddPath" Command="{Binding AddPathButtonCommand}"/>
+                    </WrapPanel>
+               </WrapPanel>
+            </Grid>
+        </Grid>
+        <Grid Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <wpf:CartesianChart Series="{Binding ChartCollection}" Margin="4" Padding="4"/>
+            <GroupBox Grid.Row="1" Header="Response Data Log">
+                <TextBox TextWrapping="Wrap" Name="DataLog"
+                         Text="{Binding ResponseDataLog, NotifyOnSourceUpdated=True}"
+                         VerticalScrollBarVisibility="Auto" Width="Auto"/>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</mah:MetroWindow>
