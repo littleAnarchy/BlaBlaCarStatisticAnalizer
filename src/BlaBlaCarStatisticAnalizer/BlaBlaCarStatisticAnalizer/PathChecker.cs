@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 using BlaBlaCarStatisticAnalizer.Common;
 using BlaBlaCarStatisticAnalizer.Models;
 using Newtonsoft.Json;
@@ -40,11 +41,17 @@ namespace BlaBlaCarStatisticAnalizer
             Request = request;
             _apiGetter = new ApiGetter();
             _apiGetter.OnMessage += OnApiGetterMessage;
+            _apiGetter.OnChangeOwnerState += OnApiGetterStateGet;
             _folderPath = Directory.GetCurrentDirectory() + "/" + "Trips" + "/" + Request;
             Directory.CreateDirectory(_folderPath);
         }
 
         public void OnApiGetterMessage(object sender, EventArgs args)
+        {
+            OnMessage?.Invoke(sender as string, null);
+        }
+
+        public void OnApiGetterStateGet(object sender, EventArgs args)
         {
             State = sender as string;
         }
@@ -81,6 +88,8 @@ namespace BlaBlaCarStatisticAnalizer
                 State = "Exception";
                 OnMessage?.Invoke(e.Message, null);
                 await Task.Delay(TimeSpan.FromSeconds(1));
+                ApiKeyController.SkipKey();
+                Request.ApiKey = ApiKeyController.CurrentKey;
                 await GetStatistic();
             }
             finally
@@ -94,18 +103,10 @@ namespace BlaBlaCarStatisticAnalizer
             var path = $"{_folderPath}/{DateTime.Today.Date:yyyy-MM-dd}.txt";
             var inFile = new List<TripModel>();
             if (CheckFileExists(path))
-            {
-                using (var sr = new StreamReader(path))
-                {
-                    var data = await sr.ReadToEndAsync();
+                inFile = await ReadData(path);
 
-                    var jsonData = JArray.Parse(data);
-
-                    inFile = jsonData.Root.ToObject<TripModel[]>().ToList();
-                }
-            }
             var t = trips.Union(inFile).Distinct(new TripComparer()).ToList();
-            TotalToday = t.Select(x => x.Seats).Sum() - t.Select(y => y.SeatsLeft).Sum();
+            TotalToday = CalculateTotalSeats(t);
             using (var sw = new StreamWriter(path))
             {
                 await sw.WriteAsync(JsonConvert.SerializeObject(t));
@@ -114,6 +115,50 @@ namespace BlaBlaCarStatisticAnalizer
             State = "Data saved";
         }
 
+        private static async Task<List<TripModel>> ReadData(string path)
+        {
+            using (var sr = new StreamReader(path))
+            {
+                var data = await sr.ReadToEndAsync();
+
+                var jsonData = JArray.Parse(data);
+
+                return jsonData.Root.ToObject<TripModel[]>().ToList();
+            }
+        }
+
+        private static int CalculateTotalSeats(IReadOnlyCollection<TripModel> trips)
+        {
+            return trips.Select(x => x.Seats).Sum() - trips.Select(y => y.SeatsLeft).Sum();
+        }
+
+        public async Task<Dictionary<DateTime, int>> GetAllData()
+        {
+            var data = new Dictionary<DateTime, int>();
+            foreach (var file in Directory.EnumerateFiles(_folderPath, "*", SearchOption.TopDirectoryOnly))
+            {
+                var date = file.Remove(0, file.LastIndexOf(@"2", StringComparison.Ordinal));
+                var date2 = date.Remove(date.IndexOf(".", StringComparison.Ordinal));
+                if (!DateTime.TryParse(date2, out var fileDate)) continue;
+
+                data.Add(fileDate, CalculateTotalSeats(await ReadData(file)));
+            }
+
+            return data;
+        }
+
+        public static List<string> GetAllPaths()
+        {
+            var returnList = new List<string>();
+            var data = Directory.EnumerateDirectories(Directory.GetCurrentDirectory() + "/" + "Trips" + "/").ToList();
+            foreach (var d in data)
+            {
+                var d1 = d.Remove(0, d.LastIndexOf(@"/", StringComparison.Ordinal));
+                returnList.Add(d1.TrimStart('/'));
+            }
+
+            return returnList;
+        }
 
         private bool CheckFileExists(string path)
         {

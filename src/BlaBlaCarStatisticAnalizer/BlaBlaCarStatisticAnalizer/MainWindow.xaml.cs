@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
 
@@ -11,12 +12,13 @@ namespace BlaBlaCarStatisticAnalizer
     {
         public MainWindow()
         {
-            DataContext = new AnalizerViewModel(this);
+            DataContext = new AnalizerViewModel(Chart);
             ThemeManager.ChangeAppStyle(this,
                 ThemeManager.GetAccent("Emerald"),
                 ThemeManager.GetAppTheme("BaseDark"));
             Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/" + "Trips");
             InitializeComponent();
+            new Task(ApiKeyController.LoadKeys).Start();
         }
     }
 }

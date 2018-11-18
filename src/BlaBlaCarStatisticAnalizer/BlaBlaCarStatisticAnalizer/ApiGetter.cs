@@ -12,10 +12,11 @@ namespace BlaBlaCarStatisticAnalizer
     public class ApiGetter
     {
         public event EventHandler OnMessage;
+        public event EventHandler OnChangeOwnerState;
 
         public async Task<List<TripModel>> Get(BlaBlaCarRequestModel model)
         {
-            OnMessage?.Invoke("Getting page 1", null);
+            OnChangeOwnerState?.Invoke("Getting page 1", null);
             var startPage = await SendRequest(model);
             var trips = startPage.Trips.ToList();
 
@@ -23,7 +24,7 @@ namespace BlaBlaCarStatisticAnalizer
 
             for (var i = 2; i <= startPage.Pager.Pages; i++)
             {
-                OnMessage?.Invoke($"Getting page {i}/{startPage.Pager.Pages}", null);
+                OnChangeOwnerState?.Invoke($"Getting page {i}/{startPage.Pager.Pages}", null);
                 await Task.Delay(TimeSpan.FromSeconds(1));
                 trips.AddRange((await SendRequest(model, i)).Trips.ToList());
             }
@@ -33,17 +34,28 @@ namespace BlaBlaCarStatisticAnalizer
 
         private async Task<BlaBlaCarResponseModel> SendRequest(BlaBlaCarRequestModel model, int page = 1)
         {
-            var request = WebRequest.Create("https://public-api.blablacar.com/api/v2/trips?fn=" + model.PlaceFrom
-                                                                                                + "&tn=" + model.PlaceTo +
-                                                                                                "&locale=" + model.Locale + "&_format=json" + "&limit=100" + 
-                                                                                                "&page=" + page);
-            request.Headers["key"] = model.ApiKey;
-            request.Method = "GET";
-            var response = await request.GetResponseAsync();
-            var data = await new StreamReader(response.GetResponseStream() ?? throw new InvalidOperationException()).ReadToEndAsync();
-            var jsonData = JObject.Parse(data);
+            try
+            {
+                var request = WebRequest.Create("https://public-api.blablacar.com/api/v2/trips?fn=" + model.PlaceFrom
+                                                                                                    + "&tn=" + model.PlaceTo +
+                                                                                                    "&locale=" + model.Locale + "&_format=json" + "&limit=100" + 
+                                                                                                    "&page=" + page);
+                request.Headers["key"] = model.ApiKey;
+                request.Method = "GET";
+                var response = await request.GetResponseAsync();
+                var data = await new StreamReader(response.GetResponseStream() ?? throw new InvalidOperationException()).ReadToEndAsync();
+                var jsonData = JObject.Parse(data);
 
-            return jsonData.Root.ToObject<BlaBlaCarResponseModel>();
+                return jsonData.Root.ToObject<BlaBlaCarResponseModel>();
+            }
+            catch (Exception e)
+            {
+                OnChangeOwnerState?.Invoke("Exception", null);
+                OnMessage?.Invoke(e.Message, null);
+                ApiKeyController.SkipKey();
+                model.ApiKey = ApiKeyController.CurrentKey;
+                return await SendRequest(model, page);
+            }
         }
     }
 }

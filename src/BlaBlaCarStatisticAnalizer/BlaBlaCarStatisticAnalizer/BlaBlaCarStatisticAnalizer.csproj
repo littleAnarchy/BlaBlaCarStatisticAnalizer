@@ -143,6 +143,7 @@
     </Page>
     <Compile Include="AnalizerViewModel.cs" />
     <Compile Include="ApiGetter.cs" />
+    <Compile Include="ApiKeyController.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>

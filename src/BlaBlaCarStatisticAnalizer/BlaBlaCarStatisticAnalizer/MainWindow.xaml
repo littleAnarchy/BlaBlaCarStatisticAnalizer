@@ -55,6 +55,7 @@
                     <ListBox.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Remove" Command="{Binding RemovePathCommand}"/>
+                            <MenuItem Header="Build chart for this path" Command="{Binding BuildChartForPathCommand}"/>
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>
@@ -95,10 +96,16 @@
         <Grid Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <wpf:CartesianChart Series="{Binding ChartCollection}" Margin="4" Padding="4"/>
-            <GroupBox Grid.Row="1" Header="Response Data Log">
+            <wpf:CartesianChart Name="Chart" Series="{Binding ChartCollection}" Margin="4" Padding="4">
+                <wpf:CartesianChart.AxisX>
+                    <wpf:Axis Title="Month" Labels="{Binding Labels}"/>
+                </wpf:CartesianChart.AxisX>
+            </wpf:CartesianChart>
+            <Button Content="Build total chart" Grid.Row="1" Command="{Binding BuildTotalChartCommand}"/>
+            <GroupBox Grid.Row="2" Header="Response Data Log">
                 <TextBox TextWrapping="Wrap" Name="DataLog"
                          Text="{Binding ResponseDataLog, NotifyOnSourceUpdated=True}"
                          VerticalScrollBarVisibility="Auto" Width="Auto"/>
