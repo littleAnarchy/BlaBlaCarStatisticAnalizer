@@ -12,88 +12,73 @@
     d:DataContext="{d:DesignInstance local:AnalizerViewModel, IsDesignTimeCreatable=False}">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="0.3*"/>
+            <ColumnDefinition Width="0.35*"/>
+            <ColumnDefinition Width="0.35*"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="0.4*"/>
-                <RowDefinition Height="0.6*"/>
-            </Grid.RowDefinitions>
-            <GroupBox Grid.Row="0" Header="Paths">
-                <ListBox ItemsSource="{Binding Paths, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" 
-                     SelectedItem="{Binding SelectedPath}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Label Content="{Binding Path=Id}" ContentStringFormat=" {0})"/>
-                                <Label Content="{Binding Request.PlaceFrom}" ContentStringFormat=" {0}  =>"/>
-                                <Label Content="{Binding Request.PlaceTo}" Margin="0" Padding="0,5,0,5"/>
-                                <Label Content="{Binding TotalToday}" ContentStringFormat="- TotalToday: {0}"/>
-                                <Label Content="{Binding TimeToHandling}" ContentStringFormat="- {0} -">
-                                    <Label.Style>
-                                        <Style TargetType="{x:Type Label}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Path=TimeToHandling,
-                                        Converter={StaticResource TimeSpanToStateConverter}}" Value="0">
-                                                    <Setter Property="Foreground" Value="AliceBlue"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Path=TimeToHandling,
-                                        Converter={StaticResource TimeSpanToStateConverter}}" Value="1">
-                                                    <Setter Property="Foreground" Value="Green"/>
-                                                    <Setter Property="FontWeight" Value="Bold"/>
-                                                    <Setter Property="Content" Value=""/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Label.Style>
-                                </Label>
-                                <Label Content="{Binding State}" ContentStringFormat="({0})"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                    <ListBox.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Remove" Command="{Binding RemovePathCommand}"/>
-                            <MenuItem Header="Build chart for this path" Command="{Binding BuildChartForPathCommand}"/>
-                        </ContextMenu>
-                    </ListBox.ContextMenu>
-                </ListBox>
-            </GroupBox>
-            <Grid Row="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <WrapPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <WrapPanel Orientation="Vertical">
-                        <Label Content="Place From"/>
-                        <TextBox Text="{Binding PlaceFrom}"/>
+            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                <StackPanel DockPanel.Dock="Left" Orientation="Vertical" HorizontalAlignment="Stretch">
+                    <Label Content="Place From:"/>
+                    <TextBox Text="{Binding PlaceFrom}"/>
+                    <Label Content="Place To:"/>
+                    <TextBox Text="{Binding PlaceTo}"/>
+                    <Label Content="Place Locale:"/>
+                    <TextBox Text="{Binding Locale}"/>
+                    <Label Content="API KEY:"/>
+                    <TextBox Text="{Binding ApiKey}"/>
+                    <WrapPanel VerticalAlignment="Center" 
+                               HorizontalAlignment="Center">
+                        <Button Content="TestPath"  Command="{Binding TestButtonCommand}"/>
+                        <Button Content="AddPath" Command="{Binding AddPathButtonCommand}"/>
+                        <Button Content="{Binding StartBtnText, NotifyOnSourceUpdated=True}" 
+                                Command="{Binding ChangeAnalizingCommand}"
+                                IsEnabled="{Binding IsStartButtonEnable}"/>
                     </WrapPanel>
-                    <WrapPanel Orientation="Vertical">
-                        <Label Content="Place To"/>
-                        <TextBox Text="{Binding PlaceTo}"/>
-                    </WrapPanel>
-                    <WrapPanel Orientation="Vertical">
-                        <Label Content="Place Locale"/>
-                        <TextBox Text="{Binding Locale}"/>
-                    </WrapPanel>
-                    <WrapPanel Orientation="Vertical">
-                        <Label Content="API KEY:"/>
-                        <TextBox Text="{Binding ApiKey}"/>
-                    </WrapPanel>
-                </WrapPanel>
-                <WrapPanel Grid.Row="1" VerticalAlignment="Center" 
-                           HorizontalAlignment="Center">
-                    <Button Content="TestPath"  Command="{Binding TestButtonCommand}"/>
-                    <Button Content="AddPath" Command="{Binding AddPathButtonCommand}"/>
-                    <Button Content="{Binding StartBtnText, NotifyOnSourceUpdated=True}" 
-                            Command="{Binding ChangeAnalizingCommand}"
-                            IsEnabled="{Binding IsStartButtonEnable}"/>
-                </WrapPanel>
-            </Grid>
+                </StackPanel>
+            </DockPanel>
         </Grid>
-        <Grid Column="1">
+        <GroupBox Grid.Column="1" Header="Paths">
+            <ListBox ItemsSource="{Binding Paths, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" 
+                     SelectedItem="{Binding SelectedPath}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="{Binding Path=Id}" ContentStringFormat=" {0})"/>
+                            <Label Content="{Binding Request.PlaceFrom}" ContentStringFormat=" {0}  =>"/>
+                            <Label Content="{Binding Request.PlaceTo}" Margin="0" Padding="0,5,0,5"/>
+                            <Label Content="{Binding TotalToday}" ContentStringFormat="- TotalToday: {0}"/>
+                            <Label Content="{Binding TimeToHandling}" ContentStringFormat="- {0} -">
+                                <Label.Style>
+                                    <Style TargetType="{x:Type Label}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Path=TimeToHandling,
+                                        Converter={StaticResource TimeSpanToStateConverter}}" Value="0">
+                                                <Setter Property="Foreground" Value="AliceBlue"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Path=TimeToHandling,
+                                        Converter={StaticResource TimeSpanToStateConverter}}" Value="1">
+                                                <Setter Property="Foreground" Value="Green"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                <Setter Property="Content" Value=""/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Label.Style>
+                            </Label>
+                            <Label Content="{Binding State}" ContentStringFormat="({0})"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Remove" Command="{Binding RemovePathCommand}"/>
+                        <MenuItem Header="Build chart for this path" Command="{Binding BuildChartForPathCommand}"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
+            </ListBox>
+        </GroupBox>
+        <Grid Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="Auto"/>

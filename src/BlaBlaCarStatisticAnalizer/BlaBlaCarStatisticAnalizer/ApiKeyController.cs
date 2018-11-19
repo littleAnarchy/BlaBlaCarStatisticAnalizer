@@ -32,7 +32,7 @@ namespace BlaBlaCarStatisticAnalizer
         {
             lock (Locker)
             {
-                if (_currentIntex != Keys.Count-1) _currentIntex++;
+                if (_currentIntex != Keys.Count-196) _currentIntex++;
                 else
                     _currentIntex = 0;
                 CurrentKey = Keys[_currentIntex];
