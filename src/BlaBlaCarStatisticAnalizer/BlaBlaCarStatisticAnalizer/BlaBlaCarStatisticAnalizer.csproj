@@ -137,6 +137,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Windows\ApiDataWindow.xaml.cs">
+      <DependentUpon>ApiDataWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -153,12 +156,16 @@
     <Compile Include="Models\BlaBlaCarResponseModel.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="Common\CommonSettings.cs" />
-    <Compile Include="Converters\TimeSpanToStateConverter.cs" />
+    <Compile Include="Converters\BoolToStateConverter.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Styles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ApiDataWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

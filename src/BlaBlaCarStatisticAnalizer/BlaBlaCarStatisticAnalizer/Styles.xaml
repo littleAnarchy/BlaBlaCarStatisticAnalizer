@@ -11,10 +11,10 @@
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <converters:TimeSpanToStateConverter x:Key="TimeSpanToStateConverter"/>
+    <converters:BoolToStateConverter x:Key="BoolToStateConverter"/>
 
     <Style TargetType="{x:Type TextBox}">
-        <Setter Property="Margin" Value="4"/>
+        <Setter Property="Margin" Value="8,4,8,4"/>
     </Style>
 
     <Style TargetType="{x:Type WrapPanel}">

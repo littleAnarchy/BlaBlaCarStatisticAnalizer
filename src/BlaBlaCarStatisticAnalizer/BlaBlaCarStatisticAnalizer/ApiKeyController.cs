@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace BlaBlaCarStatisticAnalizer
@@ -7,6 +8,7 @@ namespace BlaBlaCarStatisticAnalizer
     {
         public static List<string> Keys { get; } = new List<string>();
         public static string CurrentKey { get; private set; }
+        public static event EventHandler OnChangeCurrentKey;
 
         private static int _currentIntex;
         private static readonly string Path = Directory.GetCurrentDirectory() + @"\Keys.txt";
@@ -26,16 +28,20 @@ namespace BlaBlaCarStatisticAnalizer
                         break;
                 }
             }
+
+            CurrentKey = Keys[0];
+            OnChangeCurrentKey?.Invoke(CurrentKey, null);
         }
 
         public static void SkipKey()
         {
             lock (Locker)
             {
-                if (_currentIntex != Keys.Count-196) _currentIntex++;
+                if (_currentIntex != Keys.Count-1) _currentIntex++;
                 else
                     _currentIntex = 0;
                 CurrentKey = Keys[_currentIntex];
+                OnChangeCurrentKey?.Invoke(CurrentKey, null);
             }
         }
 

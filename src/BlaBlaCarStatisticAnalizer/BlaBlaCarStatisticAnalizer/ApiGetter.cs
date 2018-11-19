@@ -16,6 +16,8 @@ namespace BlaBlaCarStatisticAnalizer
 
         public async Task<List<TripModel>> Get(BlaBlaCarRequestModel model)
         {
+            ApiKeyController.SkipKey();
+            model.ApiKey = ApiKeyController.CurrentKey;
             OnChangeOwnerState?.Invoke("Getting page 1", null);
             var startPage = await SendRequest(model);
             var trips = startPage.Trips.ToList();
@@ -24,8 +26,9 @@ namespace BlaBlaCarStatisticAnalizer
 
             for (var i = 2; i <= startPage.Pager.Pages; i++)
             {
+                ApiKeyController.SkipKey();
+                model.ApiKey = ApiKeyController.CurrentKey;
                 OnChangeOwnerState?.Invoke($"Getting page {i}/{startPage.Pager.Pages}", null);
-                await Task.Delay(TimeSpan.FromSeconds(1));
                 trips.AddRange((await SendRequest(model, i)).Trips.ToList());
             }
 
@@ -40,7 +43,7 @@ namespace BlaBlaCarStatisticAnalizer
                                                                                                     + "&tn=" + model.PlaceTo +
                                                                                                     "&locale=" + model.Locale + "&_format=json" + "&limit=100" + 
                                                                                                     "&page=" + page);
-                request.Headers["key"] = model.ApiKey;
+                request.Headers["key"] = model.ApiKey != "" ? model.ApiKey : ApiKeyController.CurrentKey;
                 request.Method = "GET";
                 var response = await request.GetResponseAsync();
                 var data = await new StreamReader(response.GetResponseStream() ?? throw new InvalidOperationException()).ReadToEndAsync();

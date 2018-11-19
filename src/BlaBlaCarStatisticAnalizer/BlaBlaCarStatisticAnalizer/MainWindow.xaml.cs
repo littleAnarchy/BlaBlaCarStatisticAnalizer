@@ -12,7 +12,7 @@ namespace BlaBlaCarStatisticAnalizer
     {
         public MainWindow()
         {
-            DataContext = new AnalizerViewModel(Chart);
+            DataContext = new AnalizerViewModel(this);
             ThemeManager.ChangeAppStyle(this,
                 ThemeManager.GetAccent("Emerald"),
                 ThemeManager.GetAppTheme("BaseDark"));

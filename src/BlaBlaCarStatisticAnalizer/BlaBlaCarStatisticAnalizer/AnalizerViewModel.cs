@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using BlaBlaCarStatisticAnalizer.Common;
 using BlaBlaCarStatisticAnalizer.Models;
+using BlaBlaCarStatisticAnalizer.Windows;
 using LiveCharts;
 using LiveCharts.Wpf;
 using ReactiveUI;
@@ -19,10 +19,11 @@ namespace BlaBlaCarStatisticAnalizer
 {
     public class AnalizerViewModel : ReactiveObject
     {
-        private readonly CartesianChart _chart;
+        private readonly Window _owner;
         private readonly SynchronizationContext _uiContext = SynchronizationContext.Current;
         private int _currentPath = 1;
         private bool _isAnalize;
+        private TimeSpan _timeBuf = TimeSpan.Zero;
 
         public ObservableCollection<PathChecker> Paths { get; set; } = new ObservableCollection<PathChecker>();
 
@@ -34,6 +35,8 @@ namespace BlaBlaCarStatisticAnalizer
         public ICommand ChangeAnalizingCommand { get; set; }
         public ICommand BuildChartForPathCommand { get; set; }
         public ICommand BuildTotalChartCommand { get; set; }
+        public ICommand GetTodayDataForPathCommand { get; set; }
+        public ICommand GetAllTimeDataForPathCommand { get; set; }
 
         #endregion
 
@@ -61,7 +64,7 @@ namespace BlaBlaCarStatisticAnalizer
         public bool IsStartButtonEnable { get; set; } = true;
 
         [Reactive]
-        public string ApiKey { get; set; } = CommonSettings.ApiKey;
+        public string ApiKey { get; set; }
 
         [Reactive]
         public SeriesCollection ChartCollection { get; set; } = new SeriesCollection
@@ -75,11 +78,17 @@ namespace BlaBlaCarStatisticAnalizer
         [Reactive]
         public string[] Labels { get; set; } = { "Jan", "Feb", "Mar", "Apr", "May" };
 
+        [Reactive]
+        public string CurrentApiKey { get; set; } = "0";
+
+        [Reactive]
+        public TimeSpan LastCycleTime { get; set; } = TimeSpan.Zero; 
+
         #endregion
 
-        public AnalizerViewModel(CartesianChart chart)
+        public AnalizerViewModel(Window owner)
         {
-            _chart = chart;
+            _owner = owner;
 
             TestButtonCommand = new CommandHandler(OnTestButtonClick, true);
             AddPathButtonCommand = new CommandHandler(AddPath, true);
@@ -87,6 +96,10 @@ namespace BlaBlaCarStatisticAnalizer
             ChangeAnalizingCommand = new CommandHandler(AnalizingStateChange, true);
             BuildChartForPathCommand = new CommandHandler(OnBuildChartBtnClick, true);
             BuildTotalChartCommand = new CommandHandler(BuildTotalChart, true);
+            GetAllTimeDataForPathCommand = new CommandHandler(GetAllTimeDataForPath, true);
+            GetTodayDataForPathCommand = new CommandHandler(GetTodayDataForPath, true);
+
+            ApiKeyController.OnChangeCurrentKey += OnChangeApiCurrentKey;
         }
 
         private void AddPath()
@@ -96,6 +109,7 @@ namespace BlaBlaCarStatisticAnalizer
                 if (Paths.Count == CommonSettings.MaxPathsCount) throw new Exception($"Cannot add new path. Max paths count is {CommonSettings.MaxPathsCount}");
                 var checker = new PathChecker(Paths.Count + 1, FormRequest());
                 checker.OnMessage += OnPathCheckerMessage;
+                checker.OnPathHandlingEnd += OnPathHandlingEnd;
                 _uiContext.Send(x => Paths.Add(checker), null);
             }
             catch (Exception e)
@@ -121,6 +135,11 @@ namespace BlaBlaCarStatisticAnalizer
             }, null);
         }
 
+        private void OnChangeApiCurrentKey(object sender, EventArgs args)
+        {
+            CurrentApiKey = sender as string;
+        }
+
         private async Task HandlePaths()
         {
             try
@@ -136,7 +155,11 @@ namespace BlaBlaCarStatisticAnalizer
                     }, null);
                     if (checker != null) await checker.GetStatistic();
                     if (_currentPath == Paths.Count)
+                    {
                         _currentPath = 1;
+                        LastCycleTime = _timeBuf;
+                        _timeBuf = TimeSpan.Zero;
+                    }
                     else
                         _currentPath++;
                 }
@@ -147,6 +170,11 @@ namespace BlaBlaCarStatisticAnalizer
             {
                 LogMessage(e.Message);
             }
+        }
+
+        private void OnPathHandlingEnd(object sender, EventArgs args)
+        {
+            _timeBuf += (TimeSpan) sender;
         }
 
         private async void OnBuildChartBtnClick()
@@ -160,13 +188,16 @@ namespace BlaBlaCarStatisticAnalizer
             {
                 var places = path.Split('-');
                 if (places[0] == "C") places[0] = "";
-                Paths.Add(new PathChecker(Paths.Count+1, new BlaBlaCarRequestModel
+                var checker = new PathChecker(Paths.Count + 1, new BlaBlaCarRequestModel
                 {
                     ApiKey = ApiKeyController.CurrentKey,
                     Locale = "uk_UA",
                     PlaceFrom = places[0],
                     PlaceTo = places[1]
-                }));
+                });
+                checker.OnMessage += OnPathCheckerMessage;
+                checker.OnPathHandlingEnd += OnPathHandlingEnd;
+                Paths.Add(checker);
             }
 
             await BuildChart(Paths);
@@ -176,16 +207,16 @@ namespace BlaBlaCarStatisticAnalizer
         {
             try
             {
-                var allData = new Dictionary<DateTime, int>();
+                var allData = new Dictionary<string, int>();
                 foreach (var path in paths)
                 {
                     var data = await path.GetAllData();
                     foreach (var key in data.Keys)
                     {
-                        if (allData.Keys.Contains(key))
-                            allData[key] += data[key];
+                        if (allData.Keys.Contains(key.ToString("yyyy/MM/dd")))
+                            allData[key.ToString("yyyy/MM/dd")] += data[key];
                         else
-                            allData.Add(key, data[key]);
+                            allData.Add(key.ToString("yyyy/MM/dd"), data[key]);
                     }
                 }
 
@@ -197,7 +228,7 @@ namespace BlaBlaCarStatisticAnalizer
                     }
                 };
 
-                Labels = allData.Keys.ToList().ConvertAll(x => x.ToString(CultureInfo.InvariantCulture)).ToArray();
+                Labels = allData.Keys.ToArray();
             }
             catch (Exception e)
             {
@@ -207,12 +238,15 @@ namespace BlaBlaCarStatisticAnalizer
 
         private BlaBlaCarRequestModel FormRequest()
         {
-            return new BlaBlaCarRequestModel { Locale = Locale ?? "", PlaceFrom = PlaceFrom ?? "", PlaceTo = PlaceTo ?? "", ApiKey = ApiKey ?? CommonSettings.ApiKey };
+            return new BlaBlaCarRequestModel { Locale = Locale ?? "", PlaceFrom = PlaceFrom ?? "", PlaceTo = PlaceTo ?? "", ApiKey = ApiKey };
         }
 
         private void OnTestButtonClick()
         {
-            new Task(async () => await new PathChecker(1000, FormRequest()).GetStatistic()).Start();
+            var checker = new PathChecker(1000, FormRequest());
+            checker.OnMessage += OnPathCheckerMessage;
+            var task = new Task(async () => await checker.GetStatistic());
+            task.Start();
         }
 
         private void LogMessage(string message)
@@ -239,6 +273,39 @@ namespace BlaBlaCarStatisticAnalizer
                 StartBtnText = "Start";
                 IsStartButtonEnable = false;
             }
+        }
+
+        private async void GetTodayDataForPath()
+        {
+            var data = await SelectedPath.GetTodayDataForPath();
+            var dataString = "";
+
+            foreach (var trip in data)
+            {
+                dataString +=
+                    $"\nTripId: {trip.TripId}\nDepartureDate: {trip.DepartureDate}\nSeats: {trip.Seats}\nSeatsLeft: {trip.SeatsLeft}\n";
+            }
+
+            var window = new ApiDataWindow {Owner = _owner, DataBox = {Text = dataString}};
+            window.Show();
+        }
+
+        private async void GetAllTimeDataForPath()
+        {
+            var data = await SelectedPath.GetAllTimeDataForPath();
+            var dataString = "";
+
+            foreach (var date in data.Keys)
+            {
+                foreach (var trip in data[date])
+                {
+                    dataString +=
+                        $"\nDate: {date}\n\nTripId: {trip.TripId}\nDepartureDate: {trip.DepartureDate}\nSeats: {trip.Seats}\nSeatsLeft: {trip.SeatsLeft}\n";
+                }
+            }
+
+            var window = new ApiDataWindow { Owner = _owner, DataBox = { Text = dataString } };
+            window.Show();
         }
     }
 }

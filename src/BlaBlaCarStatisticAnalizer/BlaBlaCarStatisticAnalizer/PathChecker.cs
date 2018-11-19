@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
-using BlaBlaCarStatisticAnalizer.Common;
 using BlaBlaCarStatisticAnalizer.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,6 +19,7 @@ namespace BlaBlaCarStatisticAnalizer
         private readonly string _folderPath;
 
         public event EventHandler OnMessage;
+        public event EventHandler OnPathHandlingEnd;
 
         [Reactive]
         public int Id { get; set; }
@@ -34,6 +33,9 @@ namespace BlaBlaCarStatisticAnalizer
 
         [Reactive]
         public int TotalToday { get; set; }
+
+        [Reactive]
+        public bool IsActive { get; set; }
 
         public PathChecker(int id, BlaBlaCarRequestModel request)
         {
@@ -71,6 +73,7 @@ namespace BlaBlaCarStatisticAnalizer
         {
             try
             {
+                IsActive = true;
                 State = "Start getting statistic";
                 var trips = await _apiGetter.Get(Request);
                 var message = "";
@@ -79,7 +82,10 @@ namespace BlaBlaCarStatisticAnalizer
                     message += "\n";
                     message += trip;
                 }
-                new Task(async () => await SaveData(trips)).Start();
+
+                var task = new Task(async () => await SaveData(trips));
+                task.Start();
+
                 OnMessage?.Invoke(message, null);
                 State = "Statistic get";
             }
@@ -87,14 +93,15 @@ namespace BlaBlaCarStatisticAnalizer
             {
                 State = "Exception";
                 OnMessage?.Invoke(e.Message, null);
-                await Task.Delay(TimeSpan.FromSeconds(1));
                 ApiKeyController.SkipKey();
                 Request.ApiKey = ApiKeyController.CurrentKey;
                 await GetStatistic();
             }
             finally
             {
-                _timer.Dispose();
+                OnPathHandlingEnd?.Invoke(TimeToHandling, null);
+                _timer?.Dispose();
+                IsActive = false;
             }
         }
 
@@ -105,11 +112,22 @@ namespace BlaBlaCarStatisticAnalizer
             if (CheckFileExists(path))
                 inFile = await ReadData(path);
 
-            var t = trips.Union(inFile).Distinct(new TripComparer()).ToList();
-            TotalToday = CalculateTotalSeats(t);
+            foreach (var trip in trips)
+            {
+               var analog = inFile.FirstOrDefault(x => x.TripId == trip.TripId);
+                if (analog == null)
+                    inFile.Add(trip);
+                else
+                {
+                    var index = inFile.IndexOf(analog);
+                    inFile[index] = trip;
+                }
+            }
+
+            TotalToday = CalculateTotalSeats(inFile);
             using (var sw = new StreamWriter(path))
             {
-                await sw.WriteAsync(JsonConvert.SerializeObject(t));
+                await sw.WriteAsync(JsonConvert.SerializeObject(inFile));
             }
 
             State = "Data saved";
@@ -127,6 +145,12 @@ namespace BlaBlaCarStatisticAnalizer
             }
         }
 
+        //Todo path is field
+        public async Task<List<TripModel>> GetTodayDataForPath()
+        {
+            return await ReadData($"{_folderPath}/{DateTime.Today.Date:yyyy-MM-dd}.txt");
+        }
+
         private static int CalculateTotalSeats(IReadOnlyCollection<TripModel> trips)
         {
             return trips.Select(x => x.Seats).Sum() - trips.Select(y => y.SeatsLeft).Sum();
@@ -142,6 +166,21 @@ namespace BlaBlaCarStatisticAnalizer
                 if (!DateTime.TryParse(date2, out var fileDate)) continue;
 
                 data.Add(fileDate, CalculateTotalSeats(await ReadData(file)));
+            }
+
+            return data;
+        }
+
+        public async Task<Dictionary<DateTime, List<TripModel>>> GetAllTimeDataForPath()
+        {
+            var data = new Dictionary<DateTime, List<TripModel>>();
+            foreach (var file in Directory.EnumerateFiles(_folderPath, "*", SearchOption.TopDirectoryOnly))
+            {
+                var date = file.Remove(0, file.LastIndexOf(@"2", StringComparison.Ordinal));
+                var date2 = date.Remove(date.IndexOf(".", StringComparison.Ordinal));
+                if (!DateTime.TryParse(date2, out var fileDate)) continue;
+
+                data.Add(fileDate, await ReadData(file));
             }
 
             return data;
