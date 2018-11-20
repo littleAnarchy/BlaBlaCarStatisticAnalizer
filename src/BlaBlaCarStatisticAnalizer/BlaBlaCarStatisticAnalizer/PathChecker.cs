@@ -116,7 +116,10 @@ namespace BlaBlaCarStatisticAnalizer
             {
                var analog = inFile.FirstOrDefault(x => x.TripId == trip.TripId);
                 if (analog == null)
-                    inFile.Add(trip);
+                {
+                    if (DateTime.Parse(trip.DepartureDate).Date == DateTime.Today.Date)
+                        inFile.Add(trip);
+                }
                 else
                 {
                     var index = inFile.IndexOf(analog);
@@ -135,6 +138,7 @@ namespace BlaBlaCarStatisticAnalizer
 
         private static async Task<List<TripModel>> ReadData(string path)
         {
+            if (!File.Exists(path)) return new List<TripModel>();
             using (var sr = new StreamReader(path))
             {
                 var data = await sr.ReadToEndAsync();
@@ -161,9 +165,10 @@ namespace BlaBlaCarStatisticAnalizer
             var data = new Dictionary<DateTime, int>();
             foreach (var file in Directory.EnumerateFiles(_folderPath, "*", SearchOption.TopDirectoryOnly))
             {
-                var date = file.Remove(0, file.LastIndexOf(@"2", StringComparison.Ordinal));
-                var date2 = date.Remove(date.IndexOf(".", StringComparison.Ordinal));
-                if (!DateTime.TryParse(date2, out var fileDate)) continue;
+                var date = file.Remove(0, file.LastIndexOf(@"\", StringComparison.Ordinal));
+                var date2 = date.Remove(0, 1);
+                var date3 = date2.Remove(date2.IndexOf(".", StringComparison.Ordinal));
+                if (!DateTime.TryParse(date3, out var fileDate)) continue;
 
                 data.Add(fileDate, CalculateTotalSeats(await ReadData(file)));
             }

@@ -149,10 +149,7 @@ namespace BlaBlaCarStatisticAnalizer
                     await Task.Delay(TimeSpan.FromSeconds(1));
                     if (Paths.Count == 0) return;
                     var checker = Paths.FirstOrDefault(path => path.Id == _currentPath);
-                    _uiContext.Send(x =>
-                    {
-                        checker?.SetReady(TimeSpan.FromSeconds(0));
-                    }, null);
+                    _uiContext.Send(x => { checker?.SetReady(TimeSpan.FromSeconds(0)); }, null);
                     if (checker != null) await checker.GetStatistic();
                     if (_currentPath == Paths.Count)
                     {
@@ -163,12 +160,15 @@ namespace BlaBlaCarStatisticAnalizer
                     else
                         _currentPath++;
                 }
-
-                IsStartButtonEnable = true;
             }
             catch (Exception e)
             {
                 LogMessage(e.Message);
+            }
+            finally
+            {
+                _isAnalize = false;
+                IsStartButtonEnable = true;
             }
         }
 
