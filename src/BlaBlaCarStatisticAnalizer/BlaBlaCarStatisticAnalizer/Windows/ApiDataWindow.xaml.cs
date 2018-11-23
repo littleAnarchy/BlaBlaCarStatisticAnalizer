@@ -1,4 +1,7 @@
-﻿using MahApps.Metro;
+﻿using System;
+using System.Collections.Generic;
+using BlaBlaCarStatisticAnalizer.Models;
+using MahApps.Metro;
 using MahApps.Metro.Controls;
 
 namespace BlaBlaCarStatisticAnalizer.Windows
@@ -8,12 +11,16 @@ namespace BlaBlaCarStatisticAnalizer.Windows
     /// </summary>
     public partial class ApiDataWindow : MetroWindow
     {
-        public ApiDataWindow()
+        public ApiDataWindow(Dictionary<DateTime, List<TripModel>> tripsOnDay)
         {
             ThemeManager.ChangeAppStyle(this,
-                ThemeManager.GetAccent("Emerald"),
+                ThemeManager.GetAccent("Blue"),
                 ThemeManager.GetAppTheme("BaseDark"));
+            var context = new ApiDataViewModel(tripsOnDay);
+            DataContext = context;
             InitializeComponent();
+            DatesList.SelectionChanged += context.OnDateSelect;
+            DatesList.SelectedIndex = tripsOnDay.Count-1;
         }
     }
 }

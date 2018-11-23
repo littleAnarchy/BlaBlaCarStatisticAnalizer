@@ -137,8 +137,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Windows\ApiDataViewModel.cs" />
     <Compile Include="Windows\ApiDataWindow.xaml.cs">
       <DependentUpon>ApiDataWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ApiKeysViewModel.cs" />
+    <Compile Include="Windows\ApiKeysWindow.xaml.cs">
+      <DependentUpon>ApiKeysWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -166,6 +171,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ApiDataWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ApiKeysWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

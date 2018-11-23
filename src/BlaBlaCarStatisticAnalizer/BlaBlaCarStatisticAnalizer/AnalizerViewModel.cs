@@ -37,6 +37,8 @@ namespace BlaBlaCarStatisticAnalizer
         public ICommand BuildTotalChartCommand { get; set; }
         public ICommand GetTodayDataForPathCommand { get; set; }
         public ICommand GetAllTimeDataForPathCommand { get; set; }
+        public ICommand RemovePathFromFolderCommand { get; set; }
+        public ICommand KeysOptionsButtonCommnad { get; set; }
 
         #endregion
 
@@ -98,6 +100,8 @@ namespace BlaBlaCarStatisticAnalizer
             BuildTotalChartCommand = new CommandHandler(BuildTotalChart, true);
             GetAllTimeDataForPathCommand = new CommandHandler(GetAllTimeDataForPath, true);
             GetTodayDataForPathCommand = new CommandHandler(GetTodayDataForPath, true);
+            RemovePathFromFolderCommand = new CommandHandler(RemovePathFromFolder, true);
+            KeysOptionsButtonCommnad = new CommandHandler(OpenKeysOptionsWindow, true);
 
             ApiKeyController.OnChangeCurrentKey += OnChangeApiCurrentKey;
         }
@@ -197,7 +201,7 @@ namespace BlaBlaCarStatisticAnalizer
                 });
                 checker.OnMessage += OnPathCheckerMessage;
                 checker.OnPathHandlingEnd += OnPathHandlingEnd;
-                Paths.Add(checker);
+                if (Paths.All(p => p.Request.ToString() != path.ToString()))Paths.Add(checker);
             }
 
             await BuildChart(Paths);
@@ -207,18 +211,22 @@ namespace BlaBlaCarStatisticAnalizer
         {
             try
             {
-                var allData = new Dictionary<string, int>();
+                var allData = new SortedDictionary<DateTime, int>();
                 foreach (var path in paths)
                 {
                     var data = await path.GetAllData();
                     foreach (var key in data.Keys)
                     {
-                        if (allData.Keys.Contains(key.ToString("yyyy/MM/dd")))
-                            allData[key.ToString("yyyy/MM/dd")] += data[key];
+                        if (allData.Keys.Contains(key))
+                            allData[key] += data[key];
                         else
-                            allData.Add(key.ToString("yyyy/MM/dd"), data[key]);
+                            allData.Add(key, data[key]);
                     }
                 }
+
+                //allData.Keys.ToList().Sort();
+                var convertedData = allData.ToDictionary(x => $"{x.Key:yyyy-MM-dd}", x => x.Value);
+                
 
                 ChartCollection = new SeriesCollection
                 {
@@ -227,8 +235,7 @@ namespace BlaBlaCarStatisticAnalizer
                         Values = new ChartValues<int>(allData.Values)
                     }
                 };
-
-                Labels = allData.Keys.ToArray();
+                Labels = convertedData.Keys.ToArray();
             }
             catch (Exception e)
             {
@@ -278,33 +285,35 @@ namespace BlaBlaCarStatisticAnalizer
         private async void GetTodayDataForPath()
         {
             var data = await SelectedPath.GetTodayDataForPath();
-            var dataString = "";
 
-            foreach (var trip in data)
-            {
-                dataString +=
-                    $"\nTripId: {trip.TripId}\nDepartureDate: {trip.DepartureDate}\nSeats: {trip.Seats}\nSeatsLeft: {trip.SeatsLeft}\n";
-            }
-
-            var window = new ApiDataWindow {Owner = _owner, DataBox = {Text = dataString}};
+            var window = new ApiDataWindow(new Dictionary<DateTime, List<TripModel>>{ { DateTime.Today, data } }) {Owner = _owner};
             window.Show();
         }
 
         private async void GetAllTimeDataForPath()
         {
             var data = await SelectedPath.GetAllTimeDataForPath();
-            var dataString = "";
 
-            foreach (var date in data.Keys)
+            var window = new ApiDataWindow(data) { Owner = _owner};
+            window.Show();
+        }
+
+        private void RemovePathFromFolder()
+        {
+            try
             {
-                foreach (var trip in data[date])
-                {
-                    dataString +=
-                        $"\nDate: {date}\n\nTripId: {trip.TripId}\nDepartureDate: {trip.DepartureDate}\nSeats: {trip.Seats}\nSeatsLeft: {trip.SeatsLeft}\n";
-                }
+                PathChecker.RemovePathFromFolder(SelectedPath);
+                RemovePath();
             }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
 
-            var window = new ApiDataWindow { Owner = _owner, DataBox = { Text = dataString } };
+        private void OpenKeysOptionsWindow()
+        {
+            var window = new ApiKeysWindow { Owner = _owner };
             window.Show();
         }
     }

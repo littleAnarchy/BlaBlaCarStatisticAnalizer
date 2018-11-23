@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace BlaBlaCarStatisticAnalizer
 {
@@ -31,6 +32,36 @@ namespace BlaBlaCarStatisticAnalizer
 
             CurrentKey = Keys[0];
             OnChangeCurrentKey?.Invoke(CurrentKey, null);
+        }
+
+        public static async Task<List<string>> LoadKeysAsync()
+        {
+            CheckFileExists(Path);
+            var keys = new List<string>();
+
+            using (var sr = new StreamReader(Path))
+            {
+                while (true)
+                {
+                    var str = await sr.ReadLineAsync();
+                    if (str != null) keys.Add(str);
+                    else
+                        return keys;
+                }
+            }
+        }
+
+        public static void SaveKeys(List<string> keys)
+        {
+            CheckFileExists(Path);
+
+            using (var sw = new StreamWriter(Path, false))
+            {
+                foreach (var key in keys)
+                {
+                    sw.WriteLine(key);
+                }
+            }
         }
 
         public static void SkipKey()

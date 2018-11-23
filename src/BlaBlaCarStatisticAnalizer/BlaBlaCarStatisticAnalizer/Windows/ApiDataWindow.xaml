@@ -4,11 +4,34 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:windows="clr-namespace:BlaBlaCarStatisticAnalizer.Windows"
         mc:Ignorable="d"
-        Title="ApiDataWindow" Height="450" Width="400">
+        Title="ApiDataWindow" Height="450" Width="400"
+                 d:DataContext="{d:DesignInstance windows:ApiDataViewModel, IsDesignTimeCreatable=False}">
     <Grid>
-        <TextBox Name="DataBox" VerticalScrollBarVisibility="Auto">
-
-        </TextBox>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.7*"/>
+            <ColumnDefinition Width="0.3*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBox Grid.Row="0" Name="DataBox"
+                     Text="{Binding ViewedTripsBlock}" 
+                     VerticalScrollBarVisibility="Auto"/>
+            <WrapPanel Grid.Row="1" HorizontalAlignment="Center">
+                <Label Content="Total users:"/>
+                <Label Content="{Binding TotalUsers}"/>
+                <Label Content="Users for path:"/>
+                <Label Content="{Binding UsersForPath}"/>
+            </WrapPanel>
+        </Grid>
+        <Grid Grid.Column="1">
+            <ListBox Name="DatesList" ItemsSource="{Binding TripsOnDay.Keys,
+                NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}"
+                     SelectedItem="{Binding SelectedDate, UpdateSourceTrigger=PropertyChanged}"/>
+        </Grid>
     </Grid>
 </mah:MetroWindow>

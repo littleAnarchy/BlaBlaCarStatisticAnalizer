@@ -12,9 +12,10 @@ namespace BlaBlaCarStatisticAnalizer
     {
         public MainWindow()
         {
+
             DataContext = new AnalizerViewModel(this);
             ThemeManager.ChangeAppStyle(this,
-                ThemeManager.GetAccent("Emerald"),
+                ThemeManager.GetAccent("Blue"),
                 ThemeManager.GetAppTheme("BaseDark"));
             Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/" + "Trips");
             InitializeComponent();

@@ -17,6 +17,7 @@ namespace BlaBlaCarStatisticAnalizer
         private Timer _timer;
         private readonly ApiGetter _apiGetter;
         private readonly string _folderPath;
+        private readonly object _locker = new object(); 
 
         public event EventHandler OnMessage;
         public event EventHandler OnPathHandlingEnd;
@@ -93,9 +94,6 @@ namespace BlaBlaCarStatisticAnalizer
             {
                 State = "Exception";
                 OnMessage?.Invoke(e.Message, null);
-                ApiKeyController.SkipKey();
-                Request.ApiKey = ApiKeyController.CurrentKey;
-                await GetStatistic();
             }
             finally
             {
@@ -128,9 +126,12 @@ namespace BlaBlaCarStatisticAnalizer
             }
 
             TotalToday = CalculateTotalSeats(inFile);
-            using (var sw = new StreamWriter(path))
+            lock (_locker)
             {
-                await sw.WriteAsync(JsonConvert.SerializeObject(inFile));
+                using (var sw = new StreamWriter(path))
+                {
+                    sw.Write(JsonConvert.SerializeObject(inFile));
+                }
             }
 
             State = "Data saved";
@@ -181,9 +182,10 @@ namespace BlaBlaCarStatisticAnalizer
             var data = new Dictionary<DateTime, List<TripModel>>();
             foreach (var file in Directory.EnumerateFiles(_folderPath, "*", SearchOption.TopDirectoryOnly))
             {
-                var date = file.Remove(0, file.LastIndexOf(@"2", StringComparison.Ordinal));
-                var date2 = date.Remove(date.IndexOf(".", StringComparison.Ordinal));
-                if (!DateTime.TryParse(date2, out var fileDate)) continue;
+                var date = file.Remove(0, file.LastIndexOf(@"\", StringComparison.Ordinal));
+                var date2 = date.Remove(0, 1);
+                var date3 = date2.Remove(date2.IndexOf(".", StringComparison.Ordinal));
+                if (!DateTime.TryParse(date3, out var fileDate)) continue;
 
                 data.Add(fileDate, await ReadData(file));
             }
@@ -217,6 +219,12 @@ namespace BlaBlaCarStatisticAnalizer
         public override string ToString()
         {
             return $"{Id}) {Request}";
+        }
+
+        public static void RemovePathFromFolder(PathChecker path)
+        {
+            var dir = new DirectoryInfo($@"{Directory.GetCurrentDirectory()}\Trips\{path.Request}");
+            dir.Delete(true);
         }
     }
 }

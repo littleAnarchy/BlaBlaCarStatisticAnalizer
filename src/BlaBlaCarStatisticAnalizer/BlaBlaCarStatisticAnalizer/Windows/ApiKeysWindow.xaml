@@ -1,0 +1,33 @@
+﻿<mah:MetroWindow x:Class="BlaBlaCarStatisticAnalizer.Windows.ApiKeysWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:windows="clr-namespace:BlaBlaCarStatisticAnalizer.Windows"
+                 mc:Ignorable="d"
+                 Title="Api Keys sWindow" Height="450" Width="400"
+                 d:DataContext="{d:DesignInstance windows:ApiKeysViewModel, IsDesignTimeCreatable=False}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderThickness="2" Margin="2" BorderBrush="SteelBlue">
+            <ListBox Name="KeysBox" ItemsSource="{Binding Keys, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}"
+                     SelectedItem="{Binding SelectedKey, NotifyOnTargetUpdated=True}">
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Remove" Command="{Binding RemoveKeyCommand}"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
+            </ListBox>
+        </Border>
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" 
+                   Orientation="Horizontal">
+            <TextBox Width="200" Text="{Binding NewKeyText}"/>
+            <Button Content="Add" Command="{Binding AddKeyCommand}"/>
+            <Button Content="Save" Command="{Binding SaveKeysCommand}"/>
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>

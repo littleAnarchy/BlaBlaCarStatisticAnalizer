@@ -10,111 +10,132 @@
         mc:Ignorable="d"
         Title="BlaBlaCar Statistic Analizer" Height="450" Width="1100"
     d:DataContext="{d:DesignInstance local:AnalizerViewModel, IsDesignTimeCreatable=False}">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.23*"/>
-            <ColumnDefinition Width="0.37*"/>
-            <ColumnDefinition Width="0.4*"/>
-        </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" LastChildFill="True">
-                <StackPanel DockPanel.Dock="Left" Orientation="Vertical" HorizontalAlignment="Stretch">
-                    <Label Content="Place From:"/>
-                    <TextBox Text="{Binding PlaceFrom}"/>
-                    <Label Content="Place To:"/>
-                    <TextBox Text="{Binding PlaceTo}"/>
-                    <Label Content="Place Locale:"/>
-                    <TextBox Text="{Binding Locale}"/>
-                    <Label Content="API KEY:"/>
-                    <TextBox Text="{Binding ApiKey}"/>
-                    <WrapPanel VerticalAlignment="Center" 
+   <Border BorderThickness="2" Margin="2" BorderBrush="SteelBlue">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.23*" MinWidth="50"/>
+                <ColumnDefinition Width="0.37*" MinWidth="50"/>
+                <ColumnDefinition Width="0.4*" MinWidth="50"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Left" Orientation="Vertical" HorizontalAlignment="Stretch">
+                        <Label Content="Place From:"/>
+                        <TextBox Text="{Binding PlaceFrom}"/>
+                        <Label Content="Place To:"/>
+                        <TextBox Text="{Binding PlaceTo}"/>
+                        <Label Content="Place Locale:"/>
+                        <TextBox Text="{Binding Locale}"/>
+                        <Label Content="API KEY:"/>
+                        <TextBox Text="{Binding ApiKey}"/>
+                        <WrapPanel VerticalAlignment="Center" 
                                HorizontalAlignment="Center">
-                        <Button Content="TestPath"  Command="{Binding TestButtonCommand}"/>
-                        <Button Content="AddPath" Command="{Binding AddPathButtonCommand}"/>
-                        <Button Content="{Binding StartBtnText, NotifyOnSourceUpdated=True}" 
+                            <Button Content="TestPath"  Command="{Binding TestButtonCommand}"/>
+                            <Button Content="AddPath" Command="{Binding AddPathButtonCommand}"/>
+                            <Button Content="{Binding StartBtnText, NotifyOnSourceUpdated=True}" 
                                 Command="{Binding ChangeAnalizingCommand}"
                                 IsEnabled="{Binding IsStartButtonEnable}"/>
-                    </WrapPanel>
-                </StackPanel>
-            </DockPanel>
-            <StackPanel Grid.Row="1">
-                <Label Content="Current API Key:" Margin="2,1,1,1" Padding="0"/>
-                <Label Content="{Binding CurrentApiKey}" Margin="8,0,0,0" Padding="0"/>
-            </StackPanel>
-        </Grid>
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <GroupBox Grid.Row="0"  Header="Paths">
-                <ListBox ItemsSource="{Binding Paths, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" 
-                     SelectedItem="{Binding SelectedPath}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Label Content="{Binding Path=Id}" ContentStringFormat=" {0})"/>
-                                <Label Content="{Binding Request.PlaceFrom}" ContentStringFormat=" {0}  =>"/>
-                                <Label Content="{Binding Request.PlaceTo}" Margin="0" Padding="0,5,0,5"/>
-                                <Label Content="{Binding TotalToday}" ContentStringFormat="- TotalToday: {0}"/>
-                                <Label Content="{Binding TimeToHandling}" ContentStringFormat="- {0} -">
-                                    <Label.Style>
-                                        <Style TargetType="{x:Type Label}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Path=IsActive,
-                                        Converter={StaticResource BoolToStateConverter}}" Value="0">
-                                                    <Setter Property="Foreground" Value="AliceBlue"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Path=IsActive,
-                                        Converter={StaticResource BoolToStateConverter}}" Value="1">
-                                                    <Setter Property="Foreground" Value="Green"/>
-                                                    <Setter Property="FontWeight" Value="Bold"/>
-                                                    <Setter Property="Content" Value=""/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Label.Style>
-                                </Label>
-                                <Label Content="{Binding State}" ContentStringFormat="({0})"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                    <ListBox.ContextMenu>
+                        </WrapPanel>
+                    </StackPanel>
+                </DockPanel>
+                <StackPanel Grid.Row="1">
+                    <Label Content="Current API Key:" Margin="2,1,1,1" Padding="0"/>
+                    <Label Content="{Binding CurrentApiKey}" Margin="8,0,0,0" Padding="0"/>
+                    <StackPanel.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Remove" Command="{Binding RemovePathCommand}"/>
-                            <MenuItem Header="Build chart for this path" Command="{Binding BuildChartForPathCommand}"/>
-                            <MenuItem Header="Get today data for path" Command="{Binding GetTodayDataForPathCommand}"/>
-                            <MenuItem Header="Get all data for path" Command="{Binding GetAllTimeDataForPathCommand}"/>
+                            <MenuItem Header="Keys options" Command="{Binding KeysOptionsButtonCommnad}"/>
                         </ContextMenu>
-                    </ListBox.ContextMenu>
-                </ListBox>
-            </GroupBox>
-            <WrapPanel Grid.Row="1" HorizontalAlignment="Center">
-                <Label Content="Last cycle time:"/>
-                <Label Content="{Binding LastCycleTime}"/>
-            </WrapPanel>
+                    </StackPanel.ContextMenu>
+                </StackPanel>
+            </Grid>
+            <GridSplitter Grid.Column="0" Width="2" Background="SteelBlue"/>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <GroupBox Grid.Row="0"  Header="Paths" Margin="4,0,8,0">
+                    <ListBox ItemsSource="{Binding Paths, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" 
+                     SelectedItem="{Binding SelectedPath}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="{Binding Path=Id}" ContentStringFormat=" {0})"/>
+                                    <Label Content="{Binding Request.PlaceFrom}" ContentStringFormat=" {0}  =>"/>
+                                    <Label Content="{Binding Request.PlaceTo}" Margin="0" Padding="0,5,0,5"/>
+                                    <Label Content="{Binding TotalToday}" ContentStringFormat="- TotalToday: {0}"/>
+                                    <Label Content="{Binding TimeToHandling}" ContentStringFormat="- {0} -">
+                                        <Label.Style>
+                                            <Style TargetType="{x:Type Label}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=IsActive,
+                                        Converter={StaticResource BoolToStateConverter}}" Value="0">
+                                                        <Setter Property="Foreground" Value="AliceBlue"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=IsActive,
+                                        Converter={StaticResource BoolToStateConverter}}" Value="1">
+                                                        <Setter Property="Foreground" Value="Green"/>
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                        <Setter Property="Content" Value=""/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Label.Style>
+                                    </Label>
+                                    <Label Content="{Binding State}" ContentStringFormat="({0})"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Remove" Command="{Binding RemovePathCommand}"/>
+                                <MenuItem Header="Remove path from folder" Command="{Binding RemovePathFromFolderCommand}"/>
+                                <MenuItem Header="Build chart for this path" Command="{Binding BuildChartForPathCommand}"/>
+                                <MenuItem Header="Get data for path" Command="{Binding GetAllTimeDataForPathCommand}"/>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
+                </GroupBox>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Center">
+                    <Label Content="Last cycle time:"/>
+                    <Label Content="{Binding LastCycleTime}"/>
+                </WrapPanel>
+            </Grid>
+            <GridSplitter Grid.Column="1" Width="2" Background="SteelBlue"/>
+            <Grid Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition MinHeight="50"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition MinHeight="50"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <wpf:CartesianChart Name="Chart" Series="{Binding ChartCollection}" Margin="4" Padding="4">
+                        <wpf:CartesianChart.AxisX>
+                            <wpf:Axis Title="Dates" Labels="{Binding Labels}"/>
+                        </wpf:CartesianChart.AxisX>
+                        <wpf:CartesianChart.AxisY >
+                            <wpf:Axis Title="Trips" MinValue="0"/>
+                        </wpf:CartesianChart.AxisY>
+                    </wpf:CartesianChart>
+                    <Button Content="Build total chart" HorizontalAlignment="Center" Grid.Row="1" Command="{Binding BuildTotalChartCommand}"/>
+                </Grid>
+                <GridSplitter Grid.Row="1" Height="2" HorizontalAlignment="Stretch" Background="SteelBlue"/>
+                <Grid Grid.Row="2">
+                    <GroupBox Header="Response Data Log">
+                        <TextBox TextWrapping="Wrap" Name="DataLog"
+                                 Text="{Binding ResponseDataLog, NotifyOnSourceUpdated=True}"
+                                 VerticalScrollBarVisibility="Auto" Width="Auto"/>
+                    </GroupBox>
+                </Grid>
+            </Grid>
         </Grid>
-        <Grid Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <wpf:CartesianChart Name="Chart" Series="{Binding ChartCollection}" Margin="4" Padding="4">
-                <wpf:CartesianChart.AxisX>
-                    <wpf:Axis Title="Month" Labels="{Binding Labels}"/>
-                </wpf:CartesianChart.AxisX>
-            </wpf:CartesianChart>
-            <Button Content="Build total chart" HorizontalAlignment="Center" Grid.Row="1" Command="{Binding BuildTotalChartCommand}"/>
-            <GroupBox Grid.Row="2" Header="Response Data Log">
-                <TextBox TextWrapping="Wrap" Name="DataLog"
-                         Text="{Binding ResponseDataLog, NotifyOnSourceUpdated=True}"
-                         VerticalScrollBarVisibility="Auto" Width="Auto"/>
-            </GroupBox>
-        </Grid>
-    </Grid>
+    </Border>
 </mah:MetroWindow>
